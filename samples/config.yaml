@@ -1,0 +1,8 @@
+
+dtaivpp/cloud_haiku:
+  scope: repo, org, user
+  find: "Testing code long time" 
+  replace_with: "NO"
+  branch_name: "GHRipper_Replacement"
+  commit_message: "Testing code long time -> NO"
+  push: False
