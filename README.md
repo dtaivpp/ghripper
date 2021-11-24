@@ -1,10 +1,9 @@
-# GitHub Dorker
-
-GH Dorker is picking up where several GitHub dorking tools leave off. Many of these dorkers grow stale and old becuase the code is very tangled and intertwined. GH-Dorker is building on the work of several other dorkers and creating a more modular approach.
+# GitHub Ripper
+GH Ripper is a utility for doing mass updates to github repos. It will find and replace text in any number of repositories and can commit them up to a new branch automatically. 
 
 ## Usage
 
-1. Install with pip `pip install ghdorker`
+1. Install with pip `pip install ghripper`
 2. (Optional) you can either export an environment variable named "GH_TOKEN" or include it in a local .env file to ensure you can make the most requests. See ["Creating a personal access token"](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) for more information on how to do so.
 
 ```
@@ -39,20 +38,13 @@ ghdorker -s repo -d samples/dorks.txt dtaivpp/NewsTicker
 
 Additionally you can create a yaml config file like so for using only specific dorks on repos.
 ```yaml
-all:
-  identity:
-    - filename:.dockercfg auth
-    - filename:id_rsa or filename:id_dsa
-    - filename:.npmrc _auth
-    - datafilename:.dockercfg auth
-    - dataextension:pem private
-    - extension:ppk private
-  cloud:
-    aws:
-      - rds.amazonaws.com password
-      - filename:.bash_profile aws
-    google:
-      - extension:json googleusercontent client_secret
+dtaivpp/cloud_haiku:
+  scope: repo, org, user
+  find: "Testing code long time" 
+  replace_with: "NO"
+  branch_name: "GHRipper_Replacement"
+  commit_message: "Testing code long time -> NO"
+  push: False
 ```
 
 This would run all the dorks that fall under the cloud section of the YAML.
