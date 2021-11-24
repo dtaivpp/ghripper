@@ -4,21 +4,21 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="ghdorker",
-    version='0.3.1',
+    name="ghripper",
+    version='0.0.1',
     author="David Tippett",
     author_email="dtaivpp@gmail.com",
-    description="A better GitHub Dorking Utility",
+    description="A tool for replacing and committing text from all repos in a certain scope",
     license='Apache Software License',
     license_files=['LICENSE'],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="GitHub Dorker Python Security Dorking",
-    url="https://github.com/dtaivpp/gh-dorker",
-    packages=['GHDorker'],
+    keywords="GitHub Replacement Automated Commit",
+    url="https://github.com/dtaivpp/github-ripper",
+    packages=['ghripper'],
     install_requires=['ghapi','python-dotenv', 'wheel'],
     entry_points = {
-        'console_scripts': ['ghdorker=GHDorker.dorker:cli_entry'],
+        'console_scripts': ['ghripper=ghripper.ripper:cli_entry'],
     },
     classifiers=[
         "Programming Language :: Python :: 3",

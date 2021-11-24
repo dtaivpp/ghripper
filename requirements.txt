@@ -2,3 +2,4 @@ ghapi
 python-dotenv
 glom
 pyyaml
+gitpython
