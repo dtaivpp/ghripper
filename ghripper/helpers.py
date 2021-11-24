@@ -103,22 +103,3 @@ def paginator(operation, per_page=30, page=1, **kwargs):
     incomplete = result['incomplete_results']
     yield result
     page += 1
-
-
-def yaml_recursor(yaml_tree: dict):
-  """Recursively grab dorks from lists"""
-  if yaml_tree is None:
-    return []
-
-  if isinstance(yaml_tree, list):
-    return set(yaml_tree)
-
-  tmp = set()
-
-  for value in yaml_tree.values():
-    if isinstance(value, list):
-      return set(value)
-
-    tmp.update(yaml_recursor(value))
-
-  return tmp
