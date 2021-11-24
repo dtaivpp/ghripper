@@ -3,9 +3,9 @@ import argparse
 from os import getenv
 from dotenv import load_dotenv
 from ghapi.all import GhApi
-from GHDorker.file_parsing import input_parse, output_parse
-from GHDorker.helpers import RateLimiter
-from GHDorker.helpers import paginator
+from ghripper.file_parsing import input_parse, output_parse
+from ghripper.helpers import RateLimiter
+from ghripper.helpers import paginator
 from git.repo.base import Repo
 
 
@@ -13,7 +13,7 @@ load_dotenv()
 GH_TOKEN = getenv('GH_TOKEN', None)
 
 #### Logging config
-console_out = logging.getLogger("ghdorker")
+console_out = logging.getLogger("ghripper")
 consoleOutHandle = logging.StreamHandler()
 consoleOutHandle.setLevel(logging.INFO)
 consoleOutFormatter = logging.Formatter('%(asctime)s - %(message)s')
@@ -50,40 +50,49 @@ def search_results(query: str, client: GhApi):
     yield results
 
 
+def perform_changes(repos_to_change, config_file): 
+  # workflow : 
+      # - Clone repo's into a specified folder
+      # - Create Branch and set to current
+      # - Find the text and replace
+      # - Create commit with message
+      # - If Push then push
+  pass
+
+
 def clone_repo(repo: str, path: str, ssh: bool) -> None:
   url = f"git@github.com:{repo}.git" if ssh else f"https://github.com/{repo}.git"
   Repo.clone_from(url, path)
 
 
-def main(dorks, scope, search, output_filename, debug, input_option='all'):
+def main(debug, config):
   """Main logic of the program"""
   if debug:
     logger.setLevel(logging.DEBUG)
 
-  dork_list = input_parse(dorks, input_option[0])
-  query_list = [f"{dork} {scope}:{search}" for dork in dork_list]
+  input = input_parse(config)
+  for key, value in input:
+    input[key]["query"] =f"{value['find']} {value['scope']}:{key}"
+  
   client = get_client()
-
   results = []
 
-  for query in query_list:
-    logger.debug("Running against dork: %s", query)
-    for result in search_results(query, client):
-      updated_results = [{"dork": query, **item} for item in result["items"]]
-      for entry in updated_results: console_log_ouput(entry)
+  for gh_object in input.values():
+    logger.debug("Running query: %s", gh_object["query"])
+
+    for result in search_results(gh_object["query"], client):
+      updated_results = [{"query": gh_object["query"], **item} for item in result["items"]]
       results.extend(updated_results)
+  
+  perform_changes(results, input)
 
-  formatted_results = output_format(results)
-
-  if output_filename is not None:
-    output_parse(output_filename, formatted_results)
-
+  
 
 def cli_entry():
   """Parse arguments and kickoff the process"""
   parser = argparse.ArgumentParser(
-    description='Search github for github dorks',
-    epilog='Use responsibly, Enjoy pentesting')
+    description='Search and replace text in GitHub repositories')
+
 
   parser.add_argument(
     '-v',
@@ -91,11 +100,6 @@ def cli_entry():
     action='version',
     version='%(prog)s 0.0.1')
 
-  parser.add_argument(
-    '-s',
-    '--scope',
-    choices=['repo', 'user', 'org'],
-    help='The type of GitHub object you would like to search')
 
   parser.add_argument(
     '-c',
@@ -103,22 +107,12 @@ def cli_entry():
     default='config.yaml',
     help='Config file for what to find and replace')
 
+
   parser.add_argument(
     '--debug',
     action='store_true',
     help='Set this if you would like to see verbose logging.')
 
-  parser.add_argument(
-    '-o',
-    '--outputFile',
-    dest='output_filename',
-    action='store',
-    help="""File to write results to. This overwrites the file provided!\n
-            Accepts .json or .csv as output file types.""")
-
-  parser.add_argument(
-    'search',
-    help='What you would like to search (eg. repo, username, or organization)')
 
   args = parser.parse_args()
   main(**vars(args))
@@ -126,22 +120,3 @@ def cli_entry():
 
 if __name__=='__main__':
   cli_entry()
-
-
-## Input file format? 
-# Find: 
-# Replace With: 
-# Branch Name: If empty dont create branch
-# Commit Message: If empty use defualt
-# Push? Bool
-
-# workflow : 
-  # Get input file and parse
-  # Check for statefile
-    # If statefile found continue w/ state
-  # Start searching for repos
-   # - Update statefiles with found repos
-      # - Clone repo's into a specified folder
-      # - update statefile with cloned location
-      # - perform change and output action
-      # - Update statefile that repo is finished
