@@ -1,0 +1,4 @@
+ghapi
+python-dotenv
+glom
+pyyaml
