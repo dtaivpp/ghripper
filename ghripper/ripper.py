@@ -3,11 +3,9 @@ import argparse
 from os import getenv
 from dotenv import load_dotenv
 from ghapi.all import GhApi
-from ghripper.file_parsing import input_parse, output_parse
-from ghripper.helpers import RateLimiter
-from ghripper.helpers import paginator
+from ghripper.file_parsing import input_parse
 from git.repo.base import Repo
-
+from ghsearcher.searcher import search, get_client
 
 load_dotenv()
 GH_TOKEN = getenv('GH_TOKEN', None)
@@ -28,26 +26,6 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 consoleHandle.setFormatter(formatter)
 logger.addHandler(consoleHandle)
 logger.setLevel(logging.ERROR)
-
-
-def get_client() -> GhApi:
-  """Return the GitHub Client"""
-  logger.debug("Creating GitHub API Object %s GitHub Token",
-               'with' if GH_TOKEN is not None else 'without')
-
-  return GhApi(token=GH_TOKEN)
-
-
-def search_results(query: str, client: GhApi):
-  """Yeilds results pages"""
-  search_gen = paginator(client.search.code, q=query)
-  rate_limits = RateLimiter(client)
-
-  for results in search_gen:
-    logger.debug("Current Rate Limits: %s",
-                 rate_limits.get_rate_limits('search'))
-    rate_limits.check_safety("search")
-    yield results
 
 
 def perform_changes(repos_to_change, config_file): 
@@ -71,28 +49,26 @@ def main(debug, config):
     logger.setLevel(logging.DEBUG)
 
   input = input_parse(config)
-  for key, value in input:
-    input[key]["query"] =f"{value['find']} {value['scope']}:{key}"
   
   client = get_client()
   results = []
 
-  for gh_object in input.values():
-    logger.debug("Running query: %s", gh_object["query"])
+  for search_context in input:
+    logger.debug("Running query: %s", search_context.query)
 
-    for result in search_results(gh_object["query"], client):
-      updated_results = [{"query": gh_object["query"], **item} for item in result["items"]]
-      results.extend(updated_results)
+    for result in search(search_context.query, endpoint='code', client=client):
+      search_context.found_repos(result)
+    
+    search_context.u
+
   
   perform_changes(results, input)
 
-  
 
 def cli_entry():
   """Parse arguments and kickoff the process"""
   parser = argparse.ArgumentParser(
     description='Search and replace text in GitHub repositories')
-
 
   parser.add_argument(
     '-v',
@@ -100,19 +76,16 @@ def cli_entry():
     action='version',
     version='%(prog)s 0.0.1')
 
-
   parser.add_argument(
     '-c',
     '--config',
     default='config.yaml',
     help='Config file for what to find and replace')
 
-
   parser.add_argument(
     '--debug',
     action='store_true',
     help='Set this if you would like to see verbose logging.')
-
 
   args = parser.parse_args()
   main(**vars(args))
