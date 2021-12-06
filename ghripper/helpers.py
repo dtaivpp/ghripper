@@ -1,12 +1,16 @@
+from fastcore.xtras import truncstr
+
+
 class GithubSearchContext():
   def __init__(self, 
                context, 
                find,
                scope, 
                replace_with, 
-               branch_name, 
-               commit_message, 
-               push):
+               push=False, 
+               commit_message=None, 
+               branch_name=None, 
+               ssh=None):
     self.context = context
     self.find = find
     self.scope = scope
@@ -16,6 +20,9 @@ class GithubSearchContext():
     self.query = f"{find} {scope}:{context}"
     self.push = push
     self.completed = False
+    self.ssh = False if ssh is None else self.ssh=True
+    
+
     self.matches = []
 
 
