@@ -1,17 +1,17 @@
 import logging
 import json
 import yaml
-from ghripper.helpers import yaml_recursor
+from typing import List
+from ghripper.helpers import GithubSearchContext
 
 logger = logging.getLogger("debug")
 
-
-def input_parse(file_path:str):
+def input_parse(file_path:str) -> List(GithubSearchContext):
   """Parese the input yaml or txt file"""
   logger.debug("Parsing input file: %s", file_path)
   if file_path.endswith(".yaml"):
-    ouput = input_yaml_file_parse(file_path)
-  return ouput
+    output = input_yaml_file_parse(file_path)
+    return [GithubSearchContext(context=key, **value) for key, value in output]
 
 
 def input_yaml_file_parse(file_path: str, options: str) -> list:
@@ -42,7 +42,6 @@ def output_json_file(data, filename):
   logger.debug("Writing JSON File: %s", filename)
   with open(filename, "+w", encoding="UTF-8") as outfile:
     json.dump(data, outfile, indent = 4)
-
 
 
 def output_csv_file(data, filename):
