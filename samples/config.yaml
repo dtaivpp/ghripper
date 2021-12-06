@@ -4,5 +4,6 @@ dtaivpp/cloud_haiku:
   find: "Testing code long time" 
   replace_with: "NO"
   branch_name: "GHRipper_Replacement"
+  ssh: True
   commit_message: "Testing code long time -> NO"
   push: False
