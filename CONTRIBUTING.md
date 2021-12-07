@@ -19,6 +19,7 @@ pre-commit install
 ```
 
 With that precommit will install itself and will test all of your commits before you add them with a commit message.
+**Note: You may need to use command line git as pre-commit uses local pylint. 
 
 
 ## Coding Guidelines
@@ -35,7 +36,7 @@ Thank you all for contributing and if you have any questions feel free to reach 
 
 More of documentation for me but here is my process before uploading to PyPi
 ```bash
-pylint GHDorker/*.py
+pylint ghripper/*.py
 pytest
 python setup.py sdist bdist_wheel
 twine check dist/*
