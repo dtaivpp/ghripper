@@ -20,8 +20,7 @@ class GithubSearchContext():
     self.query = f"{find} {scope}:{context}"
     self.push = push
     self.completed = False
-    self.ssh = False if ssh is None else self.ssh=True
-    
+    self.ssh = False if ssh is None else True
 
     self.matches = []
 
