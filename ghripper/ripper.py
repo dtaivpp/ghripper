@@ -2,7 +2,6 @@ import logging
 import argparse
 from os import path
 from os import getenv
-import re
 from dotenv import load_dotenv
 from ghripper.file_parsing import input_parse
 from git.repo.base import Repo
