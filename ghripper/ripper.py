@@ -3,9 +3,9 @@ import argparse
 from os import path
 from os import getenv
 from dotenv import load_dotenv
-from ghripper.file_parsing import input_parse
 from git.repo.base import Repo
 from ghsearcher.searcher import search, get_client
+from ghripper.file_parsing import input_parse
 
 load_dotenv()
 GH_TOKEN = getenv('GH_TOKEN', None)
@@ -29,21 +29,21 @@ logger.setLevel(logging.ERROR)
 
 
 def perform_changes(repos_to_change, reposdir):
-  
-  for ghcontext in repos_to_change: 
-    for found_repo in ghcontext.matches: 
+  """Execute changes on the specified repositories"""
+  for ghcontext in repos_to_change:
+    for found_repo in ghcontext.matches:
       repo = clone_repo(found_repo['repository']['full_name'], reposdir, ghcontext.ssh)
-      
+
       if ghcontext.branch_name is not None:
         create_and_checkout_branch(repo, ghcontext.branch_name)
-      
+
       # Repo[path] here looks like 'some/dir/and/file.txt'
       replace_file = path.join(repo.working_dir, *repo['path'].split('/'))
       find_and_replace(replace_file, ghcontext.find, ghcontext.replace_with)
-      
+
       if ghcontext.commit_message is not None:
         commit(repo, replace_file, ghcontext.commit_message)
-  
+
       if ghcontext.push:
         repo.git.push()
 
@@ -57,7 +57,7 @@ def commit(repo,file, message):
 def find_and_replace(file_path, find, replace):
   """Find and replace an exact string in a file"""
   # Read in the file
-  with open(file_path, 'r') as file :
+  with open(file_path, 'r') as file:
     filedata = file.read()
 
   # Replace the target string
@@ -76,9 +76,10 @@ def create_and_checkout_branch(repo: Repo, branch_name: str):
   repo.git.checkout(branch_name)
 
 
-def clone_repo(repo: str, path: str, ssh: bool) -> Repo:
+def clone_repo(repo: str, file_path: str, ssh: bool) -> Repo:
+  """Clone a repo to a specified directory with either https or ssh"""
   url = f"git@github.com:{repo}.git" if ssh else f"https://github.com/{repo}.git"
-  return Repo.clone_from(url, path)
+  return Repo.clone_from(url, file_path)
 
 
 def main(debug, config, reposdir):
@@ -87,7 +88,7 @@ def main(debug, config, reposdir):
     logger.setLevel(logging.DEBUG)
 
   repos_to_change = input_parse(config)
-  
+
   client = get_client()
 
   for search_context in repos_to_change:
@@ -95,7 +96,7 @@ def main(debug, config, reposdir):
 
     for result in search(search_context.query, endpoint='code', client=client):
       search_context.found_repos(result)
-    
+
     search_context.completed = True
 
   perform_changes(repos_to_change, reposdir)
